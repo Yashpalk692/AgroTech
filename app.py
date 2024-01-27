@@ -1,20 +1,15 @@
 import base64
-
 import streamlit as st
 import tensorflow as tf
 import keras.utils as image
 import numpy as np
-import random
 from PIL import Image, ImageOps  # Streamlit works with PIL library very easily for Images
 import cv2
 #import utils.SQLiteDB as dbHandler
 #from app import prediction
 import os
-import joblib
 
-
-st.title("AgroTech")
-# Crop Model
+# Styling Starts
 
 def get_base64(bin_file):
     with open(bin_file, 'rb') as f:
@@ -35,62 +30,10 @@ def set_background(png_file):
 
 set_background('bg1.png')
 
+# Styling Ends
 
-# Load the trained model
-model_path = 'model.joblib'
-RF = joblib.load(model_path)
-
-def main():
-    st.subheader("Crop Recommendation App")
-    # User input features
-    N, P, K, temperature, humidity, ph, rainfall = get_user_input()
-
-    # Make prediction
-    if st.button("Predict", key='Corp'):
-        result = make_prediction(RF, N, P, K, temperature, humidity, ph, rainfall)
-        st.success(f"#### The recommended crop is {result}")
-
-
-def get_user_input():
-
-    st.sidebar.header("User Input Features")
-
-    N = st.sidebar.text_input("Nitrogen (N)", 50)
-    P = st.sidebar.text_input("Phosphorus (P)", 50)
-    K = st.sidebar.text_input("Potassium (K)", 50)
-    temperature = st.sidebar.text_input("Temperature", 25.0)
-    humidity = st.sidebar.text_input("Humidity", 50)
-    ph = st.sidebar.text_input("pH", 7.0)
-    rainfall = st.sidebar.text_input("Rainfall", 50.0)
-
-    st.markdown("""
-        <style>
-            [data-testid=stSidebar] {
-                background-color: #aaf0aa;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    return N, P, K, temperature, humidity, ph, rainfall
-
-
-def make_prediction(RF, N, P, K, temperature, humidity, ph, rainfall):
-    new_data = [[N, P, K, temperature, humidity, ph, rainfall]]
-    prediction = RF.predict(new_data)
-    return prediction[0]
-
-if __name__ == "__main__":
-    main()
-
-
-st.markdown("---")
-#Crop file ends
-
-
-
-
-path = "upload"
-model_path = "PestImageClassificationInception.h5"
+path = 'upload'
+model_path = 'PestImageClassificationInception.h5'
 #model_path = 'C:\\Users\\asus\\PycharmProjects\\PestClassification\\PestImageClassificationCNN.h5'
 
 def save_uploadedfile(uploadedfile, path):
@@ -99,8 +42,8 @@ def save_uploadedfile(uploadedfile, path):
     print("Saved File:{} to upload".format(uploadedfile.name))
 
 
-st.subheader("Pest Image Classification using CNN")
-upload = st.file_uploader('##### Upload a pest image')
+st.title("Pest Image Classification")
+upload = st.file_uploader('Upload a pest image')
 
 def prediction(savedModel, inputImage):
     test_image = image.load_img( inputImage, target_size=(256, 256))
@@ -121,7 +64,7 @@ if upload is not None:
     print("type of opencv", type(opencv_image))
     img = Image.open(upload)
     st.image(img, caption='Uploaded Image', width=300)
-    if st.button('Predict Pest', key='Pest'):
+    if st.button('Predict'):
         # Load pretrained Model
         model = tf.keras.models.load_model(model_path)
 
@@ -142,23 +85,10 @@ if upload is not None:
         print("Output labels = ", map_result)
         print("output[np.argmax(result)] = ", map_result[np.argmax(result)])
         st.title( map_result[np.argmax(result)])
-        detail_result = {0:'## **Pesticides Recommended**  =  *Carbaryl, Malathion ,Permethrin ,Cyfluthrin*',
-                             1:'## **Pesticides Recommended** =  *Carbaryl ,Permethrin ,Cyfluthrin*',
-                             2:'## **Pesticides Recommended** = *Chlorpyrifos ,Imidacloprid ,Fipronil*',
-                             3:'## **Pesticides Recommended** = *Imidacloprid ,Carbaryl ,Malathion ,Cypermethrin*',
-                             4:'## **Pesticides Recommended** = *Bacillus thuringiensis ,Carbaryl ,Cypermethrin *',
-                         }
-        st.markdown(detail_result[np.argmax(result)])
-
-
-        #Edit
-        def main():
-            st.title("Smart Agriculture App")
-
-            # Select the task
-            task = st.sidebar.selectbox("Select Task", ["Crop Recommendation", "Pest Image Classification"])
-            if task == "Crop Recommendation":
-                predict_crop()
-            elif task == "Pest Image Classification":
-                upload = st.file_uploader('Upload a pest image')
-                predict_pest(upload)
+        detail_result = {
+            3: 'This is a beetle, Pesticides Recommended = Imidacloprid, Carbaryl, Malathion, Cypermethrin',
+            0: 'This is a Black hairy, Pesticides Recommended = Carbaryl, Malathion, Permethrin, Cyfluthrin',
+            4: 'This is a corn earworm, Pesticides Recommended = Bacillus thuringiensis, Carbaryl, Cypermethrin  ',
+            1: 'This is a Field Cricket, Pesticides Recommended = Carbaryl, Permethrin, Cyfluthrin',
+            2: 'This is a Termite, Pesticides Recommended = Chlorpyrifos, Imidacloprid, Fipronil'}
+        st.text(detail_result[np.argmax(result)])
